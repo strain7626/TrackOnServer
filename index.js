@@ -5,14 +5,33 @@ const path = require("path");
 const mysql = require("mysql2");
 const AWS = require("aws-sdk");
 const bodyParser = require("body-parser");
+
+//티쳐블 모델 불러오기
+const TeachableMachine = require("@sashido/teachablemachine-node");
+const model = new TeachableMachine({
+    modelUrl: "https://teachablemachine.withgoogle.com/models/c0z9J2mwh/"
+});
+
 require("dotenv").config();
 
 const app = express();
-const publicPath = path.join(__dirname, "public");
 
-app.use(express.static(publicPath));
 app.use(bodyParser.json()); // JSON 데이터 파싱
-
+const upload = multer({
+    storage: multer.diskStorage({
+        //파일 이름 설정
+      	filename(req, file, done) {
+          	console.log(file);
+			done(null, uuid4() + file.originalname);
+        },
+        //파일 저장 경로 설정
+		destination(req, file, done) {
+      		console.log(file);
+		    done(null, path.join(__dirname, "files"));
+	    },
+    }),
+});
+const uploadMiddleware = upload.single("fileName")
 // MySQL 연결 설정
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -28,17 +47,8 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION,
 });
 
-
-//모델 테스트 기능 용
-app.set("views", "testFiles")
-app.set("view engine", "ejs")
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-});
-
 // 파일 업로드 API
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/upload", uploadMiddleware, async (req, res) => {
     try {
         const file = req.file;
         const { latitude, longitude, wear_level, timestamp, phonenumber } = req.body;
@@ -75,6 +85,18 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             phonenumber,                       // 신고자 전화번호
         ];
 
+        //이미지 분류
+        model.classify({
+            imageUrl : "URL NEEDED"
+        }).then((predictions) => {
+            let top_value = predictions[0]['class'] // 최상위 값의 클래스 이름만 저장
+            console.log("Predictions:", top_value);
+            values[wear_level] = top_value;
+        }).catch((e) => {
+            console.log("ERROR", e);
+        });
+
+
         db.query(sql, values, (err, result) => {
             if (err) throw err;
             console.log("DB Insert Success:", result);
@@ -88,7 +110,5 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         res.status(500).json({ message: "파일 업로드 실패", error: error.message });
     }
 });
-// "/test" 라우터로 접속 시 모델 테스트 가능
-app.get("/test", (req, res) => res.render("teachable_machine_test.ejs"))
 //서버실행
 app.listen(3000, () => console.log("3000 port server opened!!"))
