@@ -28,7 +28,11 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION,
 });
 
-// Multer 설정
+
+//모델 테스트 기능 용
+app.set("views", "testFiles")
+app.set("view engine", "ejs")
+
 const upload = multer({
     storage: multer.memoryStorage(),
 });
@@ -84,6 +88,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         res.status(500).json({ message: "파일 업로드 실패", error: error.message });
     }
 });
-
-// 서버 실행
-app.listen(3000, () => console.log("3000 port server opened!!"));
+// "/test" 라우터로 접속 시 모델 테스트 가능
+app.get("/test", (req, res) => res.render("teachable_machine_test.ejs"))
+//서버실행
+app.listen(3000, () => console.log("3000 port server opened!!"))
