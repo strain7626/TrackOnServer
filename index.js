@@ -70,7 +70,10 @@ app.post("/upload", upload.array("file"), async (req, res) => {
 
             const predictionResult = await new Promise((resolve, reject) => {
                 PythonShell.run("models/k.py", options, (err, result) => {
-                    if (err) reject(err);
+                    if (err) {
+                        console.error("PythonShell Error:", err);
+                        reject(err)
+                    };
                     resolve(result)
                 });
             });
