@@ -5,12 +5,11 @@ const path = require("path");
 const mysql = require("mysql2");
 const AWS = require("aws-sdk");
 const bodyParser = require("body-parser");
+const { PythonShell } = require('python-shell')
 
-//티쳐블 모델 불러오기
-const TeachableMachine = require("@sashido/teachablemachine-node");
-const model = new TeachableMachine({
-    modelUrl: "https://teachablemachine.withgoogle.com/models/c0z9J2mwh/"
-});
+let options = {
+    args
+}
 
 require("dotenv").config();
 
@@ -84,18 +83,17 @@ app.post("/upload", uploadMiddleware, async (req, res) => {
             new Date(timestamp),               // ISO 시간 형식
             phonenumber,                       // 신고자 전화번호
         ];
-
-        //이미지 분류
-        model.classify({
-            imageUrl : "URL NEEDED"
-        }).then((predictions) => {
-            let top_value = predictions[0]['class'] // 최상위 값의 클래스 이름만 저장
-            console.log("Predictions:", top_value);
-            values[wear_level] = top_value;
-        }).catch((e) => {
-            console.log("ERROR", e);
-        });
-
+        
+        let options = {
+          args: ['files/test.jpg'] //여기에 로컬 주소 필요함
+        };
+        
+        console.log("Classifying image")
+        PythonShell.run('models/k.py', options).then(result=>{
+            className = result[2].split(" ")[1]
+            console.log(className)
+            values[wear_level] = className //클래스 이름 저장   
+        })
 
         db.query(sql, values, (err, result) => {
             if (err) throw err;
