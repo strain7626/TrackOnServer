@@ -6,7 +6,7 @@ const mysql = require("mysql2");
 const AWS = require("aws-sdk");
 const bodyParser = require("body-parser");
 const cors = require("cors"); // CORS 모듈 추가
-const { PythonShell } = require("python-shell");
+// const { PythonShell } = require("python-shell");
 const downloadRoute = require("./route/downloadRoute");
 require("dotenv").config();
 
@@ -60,22 +60,22 @@ app.post("/upload", upload.array("file"), async (req, res) => {
             const uploadResult = await s3.upload(s3Params).promise();
             console.log("S3 Upload Success:", uploadResult.Location);
 
-            const options = {
-                args: [uploadResult.Location],
-            };
+            // const options = {
+            //     args: [uploadResult.Location],
+            // };
 
-            const predictionResult = await new Promise((resolve, reject) => {
-                PythonShell.run("models/k.py", options, (err, result) => {
-                    if (err) {
-                        console.error("PythonShell Error:", err);
-                        reject(err)
-                    };
-                    resolve(result)
-                });
-            });
+            // const predictionResult = await new Promise((resolve, reject) => {
+            //     PythonShell.run("models/k.py", options, (err, result) => {
+            //         if (err) {
+            //             console.error("PythonShell Error:", err);
+            //             reject(err)
+            //         };
+            //         resolve(result)
+            //     });
+            // });
 
-            const className = predictionResult[0].trim();
-            console.log("Presicted Class :", className);
+            // const className = predictionResult[0].trim();
+            // console.log("Presicted Class :", className);
 
             // DB에 데이터 저장
             const sql = `
@@ -87,7 +87,7 @@ app.post("/upload", upload.array("file"), async (req, res) => {
                 uploadResult.Location,             // S3에 업로드된 파일 URL
                 parseFloat(latitude),              // 위도
                 parseFloat(longitude),             // 경도
-                className,                         // AI 모델로 예측된 값이 아니므로 임의의 값 "unknown" 저장
+                "RoadLevel2",                      // AI 모델로 예측된 값이 아니므로 임의의 값 "RoadLevel2" 저장
                 new Date(timestamp),               // ISO 시간 형식
                 phonenumber,                       // 신고자 전화번호
             ];

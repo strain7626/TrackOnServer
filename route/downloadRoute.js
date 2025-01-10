@@ -3,6 +3,8 @@ const mysql = require("mysql2");
 
 const router = express.Router();
 
+require("dotenv").config();
+
 // MySQL 연결 설정
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
