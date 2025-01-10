@@ -7,12 +7,14 @@ const AWS = require("aws-sdk");
 const bodyParser = require("body-parser");
 const cors = require("cors"); // CORS 모듈 추가
 const { PythonShell } = require("python-shell");
+const downloadRoute = require("./route/downloadRoute");
 require("dotenv").config();
 
 const app = express();
 
 app.use(cors()); // CORS 활성화
 app.use(bodyParser.json()); // JSON 데이터 파싱
+app.use("/download",downloadRoute) // /download는 downloadRoute에서 처리
 
 // MySQL 연결 설정
 const db = mysql.createConnection({
