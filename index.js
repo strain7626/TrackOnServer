@@ -10,10 +10,8 @@ const { PythonShell } = require("python-shell");
 require("dotenv").config();
 
 const app = express();
-const publicPath = path.join(__dirname, "public");
 
 app.use(cors()); // CORS 활성화
-app.use(express.static(publicPath));
 app.use(bodyParser.json()); // JSON 데이터 파싱
 
 // MySQL 연결 설정
@@ -30,10 +28,6 @@ const s3 = new AWS.S3({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
 });
-
-// 모델 테스트 기능 용
-app.set("views", "testFiles");
-app.set("view engine", "ejs");
 
 // multer 설정: 여러 파일을 받을 수 있도록 변경
 const upload = multer({
